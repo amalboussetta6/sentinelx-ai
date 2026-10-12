@@ -1,0 +1,31 @@
+# --- Environnements Python ---------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# --- Jupyter -------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- Données brutes : jamais versionnées (cahier des charges §18.1) ------
+# Les fichiers C-MAPSS se téléchargent depuis la source NASA (voir README).
+data/raw/*
+!data/raw/.gitkeep
+
+# --- Modèles et suivi d'expériences (artefacts lourds) -------------------
+*.pt
+*.pth
+*.pkl
+*.joblib
+mlruns/
+
+# --- Secrets (seul .env.example est versionné) ---------------------------
+.env
+
+# --- Éditeurs et systèmes ------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

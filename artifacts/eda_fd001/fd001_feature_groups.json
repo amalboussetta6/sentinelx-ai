@@ -1,0 +1,103 @@
+{
+  "near_constant_threshold": 0.95,
+  "constant": [
+    "setting_3",
+    "sensor_1",
+    "sensor_5",
+    "sensor_10",
+    "sensor_16",
+    "sensor_18",
+    "sensor_19"
+  ],
+  "near_constant": [
+    "sensor_6"
+  ],
+  "dynamic": [
+    "setting_1",
+    "setting_2",
+    "sensor_2",
+    "sensor_3",
+    "sensor_4",
+    "sensor_7",
+    "sensor_8",
+    "sensor_9",
+    "sensor_11",
+    "sensor_12",
+    "sensor_13",
+    "sensor_14",
+    "sensor_15",
+    "sensor_17",
+    "sensor_20",
+    "sensor_21"
+  ],
+  "heterogeneous_trend": [
+    "sensor_9",
+    "sensor_14"
+  ],
+  "redundant_groups": [
+    [
+      "sensor_9",
+      "sensor_14"
+    ],
+    [
+      "sensor_8",
+      "sensor_13"
+    ],
+    [
+      "sensor_11",
+      "sensor_12"
+    ]
+  ],
+  "strong_pairs": [
+    {
+      "variable_1": "sensor_9",
+      "variable_2": "sensor_14",
+      "pearson": 0.9652,
+      "spearman": 0.8879
+    },
+    {
+      "variable_1": "sensor_11",
+      "variable_2": "sensor_12",
+      "pearson": -0.8459,
+      "spearman": -0.8282
+    },
+    {
+      "variable_1": "sensor_4",
+      "variable_2": "sensor_11",
+      "pearson": 0.8276,
+      "spearman": 0.8063
+    },
+    {
+      "variable_1": "sensor_8",
+      "variable_2": "sensor_13",
+      "pearson": 0.826,
+      "spearman": 0.8027
+    },
+    {
+      "variable_1": "sensor_7",
+      "variable_2": "sensor_11",
+      "pearson": -0.8211,
+      "spearman": -0.801
+    },
+    {
+      "variable_1": "sensor_7",
+      "variable_2": "sensor_12",
+      "pearson": 0.8128,
+      "spearman": 0.7924
+    },
+    {
+      "variable_1": "sensor_4",
+      "variable_2": "sensor_12",
+      "pearson": -0.8121,
+      "spearman": -0.7929
+    }
+  ],
+  "forbidden_as_feature": [
+    "RUL",
+    "last_cycle",
+    "life_pct",
+    "max_cycle",
+    "progress_pct",
+    "unit_id"
+  ]
+}

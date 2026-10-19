@@ -4,7 +4,7 @@ Plateforme logicielle de maintenance prédictive : à partir des séries tempore
 
 > Projet d'intégration en Intelligence Artificielle — prototype académique d'aide à la décision, **100 % logiciel** : les données publiques sont rejouées comme un flux temps réel, sans capteur physique.
 
-**Dernière mise à jour : 12 octobre 2026 — étape terminée : S2 (données + EDA). Prochaine étape : S3 (baseline RUL).**
+**Dernière mise à jour : 19 octobre 2026 — étapes terminées : S2 (données + EDA), S3 (baseline RUL). Prochaine étape : S4 (LSTM / GRU).**
 
 ---
 
@@ -19,7 +19,7 @@ Plateforme logicielle de maintenance prédictive : à partir des séries tempore
 7. [Données](#7-données)
 8. [Analyse exploratoire (EDA) — travail réalisé](#8-analyse-exploratoire-eda--travail-réalisé)
 9. [Règles méthodologiques non négociables](#9-règles-méthodologiques-non-négociables)
-10. [Prochaine étape détaillée : 02_baseline](#10-prochaine-étape-détaillée--02_baseline)
+10. [Baseline RUL (S3) — travail réalisé](#10-baseline-rul-s3--travail-réalisé)
 11. [Feuille de route complète (S4 → S12)](#11-feuille-de-route-complète-s4--s12)
 12. [Reprendre le projet dans une nouvelle conversation](#12-reprendre-le-projet-dans-une-nouvelle-conversation)
 13. [Environnement technique et pièges connus](#13-environnement-technique-et-pièges-connus)
@@ -79,8 +79,8 @@ Une panne non anticipée immobilise un équipement et perturbe la production. Le
 |---|---|---|---|
 | F-01 | Ingestion du dataset C-MAPSS | Must | Fait (chargement dans l'EDA) |
 | F-02 | EDA : distributions, valeurs manquantes, variabilité, corrélations, trajectoires | Must | **Fait** |
-| F-03 | Feature pipeline : scaling, sélection, fenêtrage, cible RUL | Must | Préparé (décisions exportées) |
-| F-04 | Au moins un baseline classique reproductible | Must | À faire (S3) |
+| F-03 | Feature pipeline : scaling, sélection, fenêtrage, cible RUL | Must | Fait pour le baseline (`ml/src/features.py`) ; fenêtrage séquentiel en S4 |
+| F-04 | Au moins un baseline classique reproductible | Must | **Fait** (S3 : Linear Regression, Ridge, Random Forest) |
 | F-05 | Au moins un modèle séquentiel (LSTM/GRU) | Must | À faire (S4) |
 | F-06 | Comparaison train / validation / test avec artefacts | Must | À faire |
 | F-07 | Simulateur : rejouer les cycles d'un moteur à vitesse configurable | Must | À faire (S6) |
@@ -125,8 +125,8 @@ Exigences non fonctionnelles principales : reproductibilité via README + Docker
 |---|---|---|---|
 | S1 | Cadrage + dépôt | README + squelette + issues | Partiel (dépôt et environnement en place) |
 | **S2** | **Données + EDA** | **Notebook EDA + échantillon traité** | **Terminé** |
-| S3 | Baseline RUL | `baseline_metrics.json` + graphiques | **Prochaine étape** |
-| S4 | LSTM / GRU | `model.pt` + rapport comparatif | À faire |
+| **S3** | **Baseline RUL** | **`baseline_metrics.json` + graphiques** | **Terminé** |
+| S4 | LSTM / GRU | `model.pt` + rapport comparatif | **Prochaine étape** |
 | S5 | Anomalies + Health Score | Module health + tests | À faire |
 | S6 | Backend + simulateur | API utilisable via Swagger | À faire |
 | S7 | Dashboard MVP | MVP démontrable | À faire |
@@ -146,8 +146,8 @@ Exigences non fonctionnelles principales : reproductibilité via README + Docker
 | B02 | Télécharger FD001 | Must | Fait |
 | B03 | EDA + dictionnaire des données | Must | Fait |
 | B04 | Split par moteur | Must | Fait (figé et exporté) |
-| B05 | Labels RUL | Must | Fait dans l'EDA ; à déplacer dans un module (`ml/src/`) |
-| B06 | Modèle baseline | Must | À faire |
+| B05 | Labels RUL | Must | Fait (`ml/src/data.py`, testé) |
+| B06 | Modèle baseline | Must | Fait (Random Forest retenu, test RMSE 14,23) |
 | B07 | Dataset fenêtré | Must | À faire |
 | B08-B09 | LSTM/GRU + rapport d'évaluation | Must | À faire |
 | B10-B11 | Score d'anomalie + Health Score | Must | À faire |
@@ -167,13 +167,25 @@ sentinelx-ai/
 │   └── raw/                      # C-MAPSS FD001 (non versionné — voir § 7)
 │       └── .gitkeep
 ├── notebooks/
-│   └── 01_eda_fd001_final_fusion.ipynb   # EDA complète, exécutée (85 cellules, 17 sections)
+│   ├── 01_eda_fd001_final_fusion.ipynb   # EDA complète, exécutée (85 cellules, 17 sections)
+│   └── 02_baseline_fd001.ipynb           # baseline RUL S3, exécuté (65 cellules, 20 sections)
+├── ml/
+│   ├── src/                      # code réutilisable importé par les notebooks
+│   │   ├── data.py               # chargement, décisions EDA, RUL, split, accès protégé à RUL_FD001
+│   │   ├── features.py           # features temporelles causales par moteur
+│   │   ├── evaluation.py         # métriques, GroupKFold, comparaison appariée
+│   │   └── models.py             # Linear Regression, Ridge, Random Forest
+│   └── tests/                    # tests pytest (causalité, anti-fuite, compatibilité EDA)
 ├── artifacts/
-│   └── eda_fd001/                # décisions de l'EDA (JSON) réutilisées par 02_baseline
+│   ├── eda_fd001/                # décisions de l'EDA (JSON) réutilisées par 02_baseline
+│   └── baseline_fd001/           # métriques, sélection et résultats du baseline (modèle .joblib non versionné)
 ├── reports/
-│   └── figures/eda_fd001/        # 15 figures générées par le notebook
+│   └── figures/
+│       ├── eda_fd001/            # 15 figures de l'EDA
+│       └── baseline_fd001/       # 11 figures du baseline
 ├── docs/
 │   └── guide_eda_fd001.pdf       # guide pédagogique de l'EDA (36 pages)
+├── pyproject.toml                # configuration de pytest
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -225,7 +237,17 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Ouvrir ensuite le notebook dans VS Code (ou Jupyter) avec le noyau Python de `.venv`.
+Ouvrir ensuite les notebooks dans VS Code (ou Jupyter) avec le noyau Python de `.venv`, et les exécuter dans l'ordre : `01_eda_fd001_final_fusion.ipynb` puis `02_baseline_fd001.ipynb`. Ils fonctionnent lancés depuis la racine du dépôt ou depuis `notebooks/`, sans dépendance à Google Colab.
+
+**Tests** (depuis la racine du dépôt, environnement activé) :
+
+```powershell
+python -m pytest
+```
+
+Les tests de `ml/tests/` vérifient la cible RUL, le split par moteur, la causalité des features temporelles, l'absence de fuite entre moteurs, les métriques et la compatibilité avec les artefacts de l'EDA (ce dernier test est ignoré si `data/raw/` est vide).
+
+**Branches Git** : le développement se fait sur des branches `feature/...`, fusionnées dans `main` par pull request ; `main` n'est jamais modifiée directement.
 
 ---
 
@@ -368,50 +390,42 @@ Ces règles s'appliquent à **toutes** les étapes suivantes.
 
 ---
 
-## 10. Prochaine étape détaillée : 02_baseline
+## 10. Baseline RUL (S3) — travail réalisé
 
-Objectif S3 (Definition of Done) : un baseline RUL entraîné, `baseline_metrics.json` et des graphiques, sans fuite d'information.
+Notebook : [`notebooks/02_baseline_fd001.ipynb`](notebooks/02_baseline_fd001.ipynb) — version 2, 65 cellules, 20 sections, entièrement exécuté sans erreur ni avertissement (≈ 13 min sur 2 cœurs). Il importe le code réutilisable de `ml/src/` et se termine par une cellule qui revérifie par `assert` les chiffres cités dans sa conclusion.
 
-### 10.1 Charger les décisions de l'EDA
+### 10.1 Protocole
 
-```python
-import json
-from pathlib import Path
+| Étape | Choix |
+|---|---|
+| Données | Split figé de l'EDA : 80 moteurs d'analyse, 20 de validation ; `RUL_FD001.txt` lu une seule fois, après gel du pipeline (`GroundTruthGuard`) |
+| Modèles | Linear Regression, Ridge (avec `StandardScaler` dans un `Pipeline`), Random Forest Regressor |
+| Features | 17 variables non constantes de l'EDA + features temporelles **causales** par moteur : moyenne et pente sur 30 cycles, écart à la moyenne des 20 premiers cycles |
+| Cible | RUL plafonné (cap choisi en validation croisée parmi 90 à 140) ; évaluation toujours contre le RUL réel |
+| Sélection | `GroupKFold(5)` sur les 80 moteurs d'analyse ; critère : RMSE sur RUL réel ≤ 127 (zone couverte par tous les moteurs) ; une option n'est adoptée que si elle gagne sur **chacun** des 5 folds |
+| Vérification | 20 moteurs de validation figés, puis test NASA au dernier cycle observé de chaque moteur |
 
-import pandas as pd
+### 10.2 Résultats (valeurs réelles)
 
-ROOT = Path.cwd().parent if Path.cwd().name == "notebooks" else Path.cwd()
-COLUMNS = ["unit_id", "cycle"] + [f"setting_{i}" for i in range(1, 4)] + [f"sensor_{i}" for i in range(1, 22)]
+| Modèle | Features retenues | CV RMSE zone | Validation RMSE zone | Test RMSE | Test MAE | Test R² | Score NASA |
+|---|---|---|---|---|---|---|---|
+| Linear Regression | écart début de vie | 17,16 ± 0,51 | 16,46 | 19,80 | 15,70 | 0,773 | 569,6 |
+| Ridge (`alpha` = 1000) | écart début de vie | 16,81 ± 0,48 | 16,31 | 19,63 | 15,59 | 0,777 | 544,2 |
+| **Random Forest (retenu)** | moyenne + pente + écart | **12,90 ± 0,47** | **11,41** | **14,23** | **10,37** | **0,883** | **239,2** |
 
-train_df = pd.read_csv(ROOT / "data/raw/train_FD001.txt", sep=r"\s+", header=None, names=COLUMNS)
-split = json.loads((ROOT / "artifacts/eda_fd001/fd001_engine_split.json").read_text(encoding="utf-8"))
-groups = json.loads((ROOT / "artifacts/eda_fd001/fd001_feature_groups.json").read_text(encoding="utf-8"))
+- Modèle retenu : **Random Forest** (100 arbres, `min_samples_leaf` = 5, `max_features` = 0,33, cap 110). Il bat Ridge sur les 5 folds et sur les 20 moteurs de validation.
+- Gain par rapport à la v1 (Ridge sur mesures instantanées, test RMSE 22,69) : **−37 % d'erreur**, score NASA divisé par plus de 4.
+- Ablations de l'EDA (`cycle`, `sensor_6`, `setting_1/2`, `sensor_9/14`, redondance) : aucune n'est adoptée ; `sensor_9` et `sensor_14` sont utiles malgré leurs deux régimes.
+- Limites : 50 moteurs de test sur 100 reçoivent une prédiction tardive (au plus 16,55 cycles) ; pas d'intervalle d'incertitude ; plafond à 110 cycles.
 
-train = train_df[train_df["unit_id"].isin(split["analysis_engines"])].copy()
-valid = train_df[train_df["unit_id"].isin(split["validation_engines"])].copy()
+### 10.3 Sorties
 
-for df in (train, valid):
-    df["RUL"] = df.groupby("unit_id")["cycle"].transform("max") - df["cycle"]
+- `artifacts/baseline_fd001/` : `baseline_metrics.json`, `model_selection.json` (écrit avant la lecture du test), résultats de validation croisée (`cv_*.csv`), prédictions de validation et de test, importances par permutation. Le modèle `baseline_rul_fd001.joblib` (≈ 20 Mo) n'est pas versionné.
+- `reports/figures/baseline_fd001/` : 11 figures.
 
-features = [c for c in COLUMNS[2:] if c not in groups["constant"]]   # 17 variables candidates
-```
+### 10.4 Après le baseline (S4 — LSTM/GRU)
 
-### 10.2 Plan pas à pas
-
-1. **Déplacer la logique réutilisable dans `ml/src/`** : `data.py` (chargement, split, `add_rul`), `features.py` (sélection, fenêtres, features causales). Le notebook 02 importe ces modules.
-2. **Cible** : comparer RUL brut et RUL plafonné (`RUL.clip(upper=cap)` avec plusieurs `cap`, par exemple 100 à 150). Le plafond est un hyperparamètre choisi en validation.
-3. **Features** : partir des 17 variables non constantes ; ajouter ensuite des features causales par moteur (moyenne glissante, pente sur les W derniers cycles, écart au début de vie), avec W ≤ 30.
-4. **Modèles baseline** : Ridge (interprétable, gère la redondance), Random Forest / Gradient Boosting (non linéaire) ; XGBoost en option.
-5. **Validation** : `GroupKFold` par `unit_id` sur les 80 moteurs d'analyse pour comparer les configurations ; puis vérification sur les 20 moteurs de validation figés.
-6. **Métriques** : MAE, RMSE, R² ; en bonus le score asymétrique NASA (pénalise davantage les prédictions tardives : `exp(−d/13) − 1` si `d < 0`, `exp(d/10) − 1` si `d ≥ 0`, avec `d = prédiction − réel`).
-7. **Analyse d'erreur** : par moteur et par tranche de RUL (début, milieu, proche panne) ; tracer prédiction vs réel pour plusieurs moteurs.
-8. **Ablations** : avec / sans `cycle` ; avec / sans `sensor_6`, `setting_1`, `setting_2` ; avec / sans `sensor_9`, `sensor_14` ; un capteur par groupe redondant.
-9. **Évaluation finale sur le test** (une seule fois, pipeline figé) : prédire au **dernier cycle observé** de chaque moteur de test et comparer aux 100 valeurs de `RUL_FD001.txt`.
-10. **Sorties** : `artifacts/baseline_fd001/baseline_metrics.json`, modèle sérialisé (non versionné s'il est lourd), graphiques dans `reports/figures/baseline_fd001/`.
-
-### 10.3 Après le baseline (S4 — LSTM/GRU)
-
-Fenêtres `W × F` construites par moteur ; W ∈ {20, 30} sans padding (W = 50 seulement avec une stratégie pour les 7 moteurs de test courts) ; normalisation ajustée sur le train ; dropout, early stopping ; comparaison au baseline sur le même split ; au moins 3 seeds si le temps le permet. Un modèle deep moins bon que le baseline est un résultat valide à analyser, pas à cacher.
+Fenêtres `W × F` construites par moteur ; W ∈ {20, 30} sans padding (W = 50 seulement avec une stratégie pour les 7 moteurs de test courts) ; normalisation ajustée sur le train ; dropout, early stopping ; comparaison au baseline sur le **même split et le même critère** ; au moins 3 seeds si le temps le permet. **Référence à battre : RMSE test = 14,23.** Un modèle deep moins bon que le baseline est un résultat valide à analyser, pas à cacher.
 
 ---
 
@@ -444,8 +458,9 @@ Cette section s'adresse à un assistant IA (ou à toute personne) qui reprend le
 
 1. Ce `README.md` (contexte complet et décisions).
 2. `notebooks/01_eda_fd001_final_fusion.ipynb`, en particulier les sections 13 (audit anti-leakage), 16 (synthèse et décisions) et 17 (conclusion).
-3. `artifacts/eda_fd001/*.json` (split et groupes de variables à réutiliser).
-4. `docs/guide_eda_fd001.pdf` pour le niveau d'explication attendu.
+3. `notebooks/02_baseline_fd001.ipynb` (sections 6 : protocole, 11 : sélection, 19 : conclusion) et `ml/src/` (code réutilisable, testé par `python -m pytest`).
+4. `artifacts/eda_fd001/*.json` et `artifacts/baseline_fd001/baseline_metrics.json` (décisions et résultats à réutiliser).
+5. `docs/guide_eda_fd001.pdf` pour le niveau d'explication attendu.
 
 ### 12.3 Prompt de reprise (à copier-coller)
 
@@ -454,8 +469,9 @@ Je travaille sur le projet SentinelX AI (maintenance prédictive sur NASA C-MAPS
 Lis d'abord le README.md du dépôt : il contient tout le contexte, les décisions de l'EDA,
 les règles anti-leakage et le plan de la prochaine étape.
 
-Où j'en suis : l'EDA (notebooks/01_eda_fd001_final_fusion.ipynb) est terminée et validée.
-Prochaine étape : S3 — notebook 02_baseline (baseline RUL) en suivant la section 10 du README.
+Où j'en suis : l'EDA (notebooks/01_eda_fd001_final_fusion.ipynb) et le baseline
+(notebooks/02_baseline_fd001.ipynb, code dans ml/src/) sont terminés et validés.
+Prochaine étape : S4 — LSTM / GRU, à comparer au baseline (section 10.4 du README).
 
 Comment travailler avec moi :
 - C'est mon premier projet dans le domaine : explique-moi chaque étape en derja tunisienne,
@@ -486,7 +502,7 @@ Comment travailler avec moi :
 - Un seul sous-ensemble (FD001) : une condition opérationnelle, un mode de panne.
 - Validation de 20 moteurs seulement, sans trajectoire de plus de 269 cycles.
 - Les capteurs ne sont pas nommés dans les fichiers : aucune interprétation physique n'est faite.
-- Aucun modèle n'est encore entraîné : aucune métrique de performance n'existe à ce stade.
+- Baseline uniquement (S3) : aucun modèle séquentiel, pas d'intervalle d'incertitude sur le RUL prédit ; la moitié des moteurs de test reçoit une prédiction légèrement tardive.
 
 ---
 

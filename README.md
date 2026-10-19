@@ -178,14 +178,13 @@ sentinelx-ai/
 │   └── tests/                    # tests pytest (causalité, anti-fuite, compatibilité EDA)
 ├── artifacts/
 │   ├── eda_fd001/                # décisions de l'EDA (JSON) réutilisées par 02_baseline
-│   └── baseline_fd001/           # métriques, sélection et résultats du baseline (modèle .joblib non versionné)
+│   └── baseline_fd001/           # baseline_metrics.json, model_selection.json, test_predictions.csv (+ modèle .joblib non versionné)
 ├── reports/
 │   └── figures/
 │       ├── eda_fd001/            # 15 figures de l'EDA
 │       └── baseline_fd001/       # 11 figures du baseline
 ├── docs/
 │   └── guide_eda_fd001.pdf       # guide pédagogique de l'EDA (36 pages)
-├── pyproject.toml                # configuration de pytest
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -239,7 +238,7 @@ pip install -r requirements.txt
 
 Ouvrir ensuite les notebooks dans VS Code (ou Jupyter) avec le noyau Python de `.venv`, et les exécuter dans l'ordre : `01_eda_fd001_final_fusion.ipynb` puis `02_baseline_fd001.ipynb`. Ils fonctionnent lancés depuis la racine du dépôt ou depuis `notebooks/`, sans dépendance à Google Colab.
 
-**Tests** (depuis la racine du dépôt, environnement activé) :
+**Tests** (depuis la racine du dépôt, environnement activé ; si `.venv` a été créé avant l'ajout de `pytest`, relancer d'abord `pip install -r requirements.txt`) :
 
 ```powershell
 python -m pytest
@@ -420,7 +419,7 @@ Notebook : [`notebooks/02_baseline_fd001.ipynb`](notebooks/02_baseline_fd001.ipy
 
 ### 10.3 Sorties
 
-- `artifacts/baseline_fd001/` : `baseline_metrics.json`, `model_selection.json` (écrit avant la lecture du test), résultats de validation croisée (`cv_*.csv`), prédictions de validation et de test, importances par permutation. Le modèle `baseline_rul_fd001.joblib` (≈ 20 Mo) n'est pas versionné.
+- `artifacts/baseline_fd001/` : `baseline_metrics.json` (configuration figée, métriques CV fold par fold, validation et test des trois modèles : référence pour S4), `model_selection.json` (sélection écrite avant la lecture du test) et `test_predictions.csv` (RUL réel et prédit des 100 moteurs de test). Le modèle `baseline_rul_fd001.joblib` (≈ 20 Mo) n'est pas versionné. Les résultats intermédiaires (grilles de validation croisée, prédictions de validation, importances par permutation) sont affichés dans le notebook et se régénèrent en le réexécutant.
 - `reports/figures/baseline_fd001/` : 11 figures.
 
 ### 10.4 Après le baseline (S4 — LSTM/GRU)
@@ -487,12 +486,13 @@ Comment travailler avec moi :
 
 ## 13. Environnement technique et pièges connus
 
-- **Versions** (voir `requirements.txt`) : Python 3.14.7, pandas 3.0.6, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, matplotlib 3.11.2, seaborn 0.13.2, ipykernel 7.4.0. Système de développement : Windows 11, VS Code, environnement `.venv` à la racine.
-- **Chemins** : le notebook cherche `data/raw/` dans le dossier courant puis dans le dossier parent ; il fonctionne lancé depuis la racine ou depuis `notebooks/`.
+- **Versions** (voir `requirements.txt`) : Python 3.14.7, pandas 3.0.6, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, joblib 1.6.0, matplotlib 3.11.2, seaborn 0.13.2, ipykernel 7.4.0, pytest 8.4.2. Système de développement : Windows 11, VS Code, environnement `.venv` à la racine.
+- **Chemins** : les notebooks cherchent `data/raw/` dans le dossier courant puis dans le dossier parent ; ils fonctionnent lancés depuis la racine ou depuis `notebooks/`, en local (aucun chemin propre à Google Colab).
 - **pandas 3** : `DataFrame.stack()` conserve désormais les `NaN` → ajouter `.dropna()` après un `where(mask).stack()` ; affecter une valeur d'un type incompatible dans une colonne existante lève une erreur → construire les tableaux avec le bon type dès le départ.
 - **Corrélation par moteur** : un capteur constant sur un moteur donne une corrélation indéfinie (`ConstantInputWarning`) → exclure explicitement ces moteurs (déjà fait en section 11 de l'EDA).
 - **Matplotlib hors notebook** : utiliser le backend `Agg` pour une exécution non interactive.
-- **Données** : ne jamais versionner `data/raw/` ; ne jamais committer de secrets (`.env` est ignoré ; seul un `.env.example` sans secret sera versionné).
+- **Données** : ne jamais versionner `data/raw/` ; ne jamais committer de secrets (`.env` et `.env.*` sont ignorés ; seul un `.env.example` sans secret sera versionné).
+- **Fichiers locaux non versionnés** (voir `.gitignore`) : `.venv/`, `data/raw/`, le modèle `artifacts/baseline_fd001/baseline_rul_fd001.joblib` (régénéré par `02_baseline_fd001.ipynb`), les caches (`__pycache__/`, `.pytest_cache/`) et les logs. Un seul modèle baseline est conservé : celui sélectionné par le notebook ; les modèles d'essai antérieurs ont été supprimés.
 
 ---
 

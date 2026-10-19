@@ -1,32 +1,31 @@
-# --- Environnements Python ---------------------------------------------
+# --- Environnement Python -------------------------------------------------
 .venv/
 venv/
-env/
 __pycache__/
 *.py[cod]
 
-# --- Jupyter -------------------------------------------------------------
+# --- Jupyter et tests ------------------------------------------------------
 .ipynb_checkpoints/
-
-# --- Tests --------------------------------------------------------------
 .pytest_cache/
 
-# --- Données brutes : jamais versionnées (cahier des charges §18.1) ------
-# Les fichiers C-MAPSS se téléchargent depuis la source NASA (voir README).
+# --- Données brutes NASA C-MAPSS : jamais versionnées (README §7) --------
 data/raw/*
 !data/raw/.gitkeep
 
-# --- Modèles et suivi d'expériences (artefacts lourds) -------------------
-*.pt
-*.pth
-*.pkl
+# --- Modèles sérialisés (régénérés par notebooks/02_baseline_fd001.ipynb) -
 *.joblib
-mlruns/
+*.pkl
 
-# --- Secrets (seul .env.example est versionné) ---------------------------
+# --- Secrets : seul un éventuel .env.example sans secret est versionné ----
 .env
+.env.*
+!.env.example
 
-# --- Éditeurs et systèmes ------------------------------------------------
+# --- Logs et fichiers temporaires --------------------------------------------
+*.log
+*.tmp
+
+# --- Éditeurs et systèmes ----------------------------------------------------
 .vscode/
 .idea/
 .DS_Store

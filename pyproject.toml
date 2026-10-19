@@ -1,5 +1,0 @@
-[tool.pytest.ini_options]
-# Permet `pytest` depuis la racine du dépôt : le paquet `ml` est importable sans installation.
-pythonpath = ["."]
-testpaths = ["ml/tests"]
-addopts = "-q"

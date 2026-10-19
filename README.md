@@ -184,7 +184,8 @@ sentinelx-ai/
 │       ├── eda_fd001/            # 15 figures de l'EDA
 │       └── baseline_fd001/       # 11 figures du baseline
 ├── docs/
-│   └── guide_eda_fd001.pdf       # guide pédagogique de l'EDA (36 pages)
+│   ├── guide_eda_fd001.pdf       # guide pédagogique de l'EDA (36 pages)
+│   └── guide_baseline_fd001.pdf  # guide pédagogique de la Baseline RUL (34 pages)
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -422,7 +423,11 @@ Notebook : [`notebooks/02_baseline_fd001.ipynb`](notebooks/02_baseline_fd001.ipy
 - `artifacts/baseline_fd001/` : `baseline_metrics.json` (configuration figée, métriques CV fold par fold, validation et test des trois modèles : référence pour S4), `model_selection.json` (sélection écrite avant la lecture du test) et `test_predictions.csv` (RUL réel et prédit des 100 moteurs de test). Le modèle `baseline_rul_fd001.joblib` (≈ 20 Mo) n'est pas versionné. Les résultats intermédiaires (grilles de validation croisée, prédictions de validation, importances par permutation) sont affichés dans le notebook et se régénèrent en le réexécutant.
 - `reports/figures/baseline_fd001/` : 11 figures.
 
-### 10.4 Après le baseline (S4 — LSTM/GRU)
+### 10.4 Documentation pédagogique
+
+[`docs/guide_baseline_fd001.pdf`](docs/guide_baseline_fd001.pdf) — guide de 34 pages, même style que le guide de l'EDA (derja tunisienne, termes techniques en français) : rôle de la baseline, calcul du RUL et plafond, features temporelles causales, Linear Regression / Ridge / Random Forest, code de `ml/src/`, GroupKFold et prévention du data leakage, MAE / RMSE / R² / score NASA, chaque section du notebook avec ses résultats réels et ses 11 figures, fichiers sauvegardés, résumé pour le jury, 15 questions probables avec réponses en français, fiche mémo des chiffres.
+
+### 10.5 Après le baseline (S4 — LSTM/GRU)
 
 Fenêtres `W × F` construites par moteur ; W ∈ {20, 30} sans padding (W = 50 seulement avec une stratégie pour les 7 moteurs de test courts) ; normalisation ajustée sur le train ; dropout, early stopping ; comparaison au baseline sur le **même split et le même critère** ; au moins 3 seeds si le temps le permet. **Référence à battre : RMSE test = 14,23.** Un modèle deep moins bon que le baseline est un résultat valide à analyser, pas à cacher.
 
@@ -459,7 +464,7 @@ Cette section s'adresse à un assistant IA (ou à toute personne) qui reprend le
 2. `notebooks/01_eda_fd001_final_fusion.ipynb`, en particulier les sections 13 (audit anti-leakage), 16 (synthèse et décisions) et 17 (conclusion).
 3. `notebooks/02_baseline_fd001.ipynb` (sections 6 : protocole, 11 : sélection, 19 : conclusion) et `ml/src/` (code réutilisable, testé par `python -m pytest`).
 4. `artifacts/eda_fd001/*.json` et `artifacts/baseline_fd001/baseline_metrics.json` (décisions et résultats à réutiliser).
-5. `docs/guide_eda_fd001.pdf` pour le niveau d'explication attendu.
+5. `docs/guide_eda_fd001.pdf` et `docs/guide_baseline_fd001.pdf` pour le niveau d'explication attendu.
 
 ### 12.3 Prompt de reprise (à copier-coller)
 
@@ -470,7 +475,7 @@ les règles anti-leakage et le plan de la prochaine étape.
 
 Où j'en suis : l'EDA (notebooks/01_eda_fd001_final_fusion.ipynb) et le baseline
 (notebooks/02_baseline_fd001.ipynb, code dans ml/src/) sont terminés et validés.
-Prochaine étape : S4 — LSTM / GRU, à comparer au baseline (section 10.4 du README).
+Prochaine étape : S4 — LSTM / GRU, à comparer au baseline (section 10.5 du README).
 
 Comment travailler avec moi :
 - C'est mon premier projet dans le domaine : explique-moi chaque étape en derja tunisienne,

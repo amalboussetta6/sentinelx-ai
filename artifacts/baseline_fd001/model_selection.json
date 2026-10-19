@@ -1,0 +1,36 @@
+{
+  "selected_model": "RandomForest",
+  "per_model": {
+    "LinearRegression": {
+      "feature_set": "écart début de vie 20",
+      "rul_cap": 110,
+      "hyperparameters": {}
+    },
+    "Ridge": {
+      "feature_set": "écart début de vie 20",
+      "rul_cap": 110,
+      "hyperparameters": {
+        "alpha": 1000.0
+      }
+    },
+    "RandomForest": {
+      "feature_set": "moyenne 30 + pente 30 + écart 20",
+      "rul_cap": 110,
+      "hyperparameters": {
+        "n_estimators": 100,
+        "min_samples_leaf": 5,
+        "max_features": 0.33
+      }
+    }
+  },
+  "cv_ranking": [
+    "RandomForest",
+    "Ridge",
+    "LinearRegression"
+  ],
+  "validation_ranking": [
+    "RandomForest",
+    "Ridge",
+    "LinearRegression"
+  ]
+}

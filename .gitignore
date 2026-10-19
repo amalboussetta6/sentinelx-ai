@@ -8,6 +8,9 @@ __pycache__/
 # --- Jupyter -------------------------------------------------------------
 .ipynb_checkpoints/
 
+# --- Tests --------------------------------------------------------------
+.pytest_cache/
+
 # --- Données brutes : jamais versionnées (cahier des charges §18.1) ------
 # Les fichiers C-MAPSS se téléchargent depuis la source NASA (voir README).
 data/raw/*

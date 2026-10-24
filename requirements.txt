@@ -1,8 +1,8 @@
 # SentinelX AI — dépendances de l'EDA et de la Baseline RUL (NASA C-MAPSS FD001)
-# Versions exactes ayant produit les résultats des notebooks — testé avec Python 3.14.7
+# Versions exactes ayant produit les résultats des notebooks — testé avec Python 3.14
 # Installation : pip install -r requirements.txt
 
-# Calcul, données et modèles (scipy : dendrogramme de l'EDA ; joblib : sauvegarde du modèle)
+# Calcul, données et modèles (scipy : utilisé par scikit-learn ; joblib : sauvegarde du modèle)
 numpy==2.5.3
 pandas==3.0.6
 scipy==1.18.1
@@ -14,5 +14,5 @@ seaborn==0.13.2
 # Noyau Jupyter (exécution du notebook dans VS Code ou Jupyter)
 ipykernel==7.4.0
 
-# Tests unitaires de ml/src (lancer depuis la racine : python -m pytest)
+# Tests de ml/src (lancer depuis la racine : python -m pytest)
 pytest==8.4.2

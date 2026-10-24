@@ -1,8 +1,7 @@
 {
   "dataset": "FD001",
-  "method": "GroupShuffleSplit par unit_id",
+  "method": "permutation aléatoire des 100 moteurs (graine 42), 20 premiers = validation",
   "random_state": 42,
-  "validation_size": 0.2,
   "analysis_engines": [
     2,
     3,

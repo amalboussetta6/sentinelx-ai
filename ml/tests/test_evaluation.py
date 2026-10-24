@@ -2,54 +2,51 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ml.src.evaluation import (cap_target, clip_negative, cross_validate, evaluate_predictions, group_folds,
-                               nasa_score, paired_gain, regression_metrics)
-from ml.src.models import make_model
+from ml.src.evaluation import compute_metrics, engine_folds, evaluate_on_zone
+from ml.src.models import create_model
 
 
-def test_regression_metrics_known_values():
-    m = regression_metrics([0, 10, 20], [1, 10, 17], with_nasa=True)
-    assert m["MAE"] == pytest.approx(4 / 3)
-    assert m["RMSE"] == pytest.approx(np.sqrt(10 / 3))
-    assert "NASA_score" in m
+def test_metrics_on_small_example():
+    metrics = compute_metrics([10, 50, 100], [12, 40, 110])
+    assert metrics["MAE"] == pytest.approx(22 / 3)
+    assert metrics["RMSE"] == pytest.approx(np.sqrt(204 / 3))
+    assert metrics["R2"] == pytest.approx(1 - 204 / np.sum((np.array([10, 50, 100]) - 160 / 3) ** 2))
 
 
-def test_nasa_score_penalises_late_predictions_more():
-    assert nasa_score([50], [60]) > nasa_score([50], [40]) > 0
-    assert nasa_score([50], [50]) == 0
+def test_perfect_prediction():
+    metrics = compute_metrics([1, 2, 3], [1, 2, 3])
+    assert metrics["MAE"] == 0 and metrics["RMSE"] == 0 and metrics["R2"] == 1
 
 
-def test_cap_and_clip():
-    assert cap_target([10, 200], 125).tolist() == [10, 125]
-    assert cap_target([10, 200], None).tolist() == [10, 200]
-    assert clip_negative([-3, 4]).tolist() == [0, 4]
+def test_zone_uses_true_rul_only():
+    """Seules les lignes avec un RUL réel <= horizon comptent, et on compare au vrai RUL."""
+    true_rul = pd.Series([0, 50, 127, 300])
+    predictions = [0, 50, 127, 110]                     # le moteur sain (300) est hors zone
+    assert evaluate_on_zone(true_rul, predictions)["RMSE"] == 0
 
 
-def test_evaluate_predictions_zone_uses_true_rul():
-    res = evaluate_predictions(np.array([0, 50, 300]), np.array([0, 50, 125]), horizon=127)
-    assert res["RMSE_zone"] == 0 and res["RMSE_global"] > 0
+def test_zone_ignores_predictions_outside_zone():
+    """Une grosse erreur sur une ligne hors zone (RUL réel > horizon) ne change pas les métriques."""
+    true_rul = [10, 20, 200]
+    assert evaluate_on_zone(true_rul, [12, 18, 0], horizon=127) == evaluate_on_zone(true_rul, [12, 18, 999], horizon=127)
 
 
-def test_group_folds_keep_engines_together():
-    groups = np.repeat(np.arange(10), 5)
-    for train_idx, test_idx in group_folds(groups, 5):
-        assert set(groups[train_idx]).isdisjoint(groups[test_idx])
+def test_engine_folds_keep_engines_together():
+    df = pd.DataFrame({"unit_id": np.repeat(np.arange(1, 11), 5)})   # 10 moteurs, 5 lignes chacun
+    folds = engine_folds(df, n_splits=5)
+    assert len(folds) == 5
+    controlled = []
+    for fit_engines, check_engines in folds:
+        assert set(fit_engines).isdisjoint(check_engines)              # aucun moteur des deux côtés
+        assert sorted(fit_engines + check_engines) == list(range(1, 11))
+        controlled += check_engines
+    assert sorted(controlled) == list(range(1, 11))     # chaque moteur est contrôlé exactement une fois
 
 
-@pytest.mark.parametrize("name,params", [("LinearRegression", {}), ("Ridge", {"alpha": 1.0}),
-                                         ("RandomForest", {"n_estimators": 10, "max_depth": 3})])
-def test_cross_validate_runs_for_every_model(name, params):
-    rng = np.random.default_rng(0)
-    groups = np.repeat(np.arange(10), 20)
-    X = pd.DataFrame({"a": rng.normal(size=200), "b": rng.normal(size=200)})
-    y = np.clip(50 + 10 * X["a"].to_numpy() + rng.normal(size=200), 0, None)
-    folds = group_folds(groups, 5)
-    per_fold, oof = cross_validate(lambda: make_model(name, n_jobs=1, **params), X, y, groups, folds, horizon=127)
-    assert per_fold.shape[0] == 5 and (oof >= 0).all()
-
-
-def test_paired_gain():
-    ref = pd.DataFrame({"RMSE_zone": [10, 12, 11]})
-    cand = pd.DataFrame({"RMSE_zone": [9, 11, 11.5]})
-    g = paired_gain(ref, cand)
-    assert g["folds_improved"] == 2 and g["gain_mean"] == pytest.approx((1 + 1 - 0.5) / 3)
+def test_create_model():
+    assert type(create_model("Régression linéaire")).__name__ == "LinearRegression"
+    forest = create_model("Forêt aléatoire", max_features=1.0)
+    assert type(forest).__name__ == "RandomForestRegressor" and forest.max_features == 1.0
+    assert create_model("Forêt aléatoire").max_features == 0.33
+    with pytest.raises(ValueError):
+        create_model("inconnu")
